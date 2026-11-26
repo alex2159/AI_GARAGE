@@ -213,6 +213,109 @@ export const openApiDocument = {
         },
       },
     },
+    "/api/v1/events": {
+      get: {
+        tags: ["events"],
+        summary: "Календарь событий",
+        operationId: "listEvents",
+        security: [{ sessionCookie: [] }],
+        parameters: [
+          {
+            name: "city",
+            in: "query",
+            required: false,
+            description: "По умолчанию — город из профиля пользователя",
+            schema: {
+              type: "string",
+              enum: ["MOSCOW", "SAINT_PETERSBURG", "KAZAN", "NIZHNY_NOVGOROD"],
+            },
+          },
+          { name: "from", in: "query", required: false, schema: { type: "string", format: "date" } },
+          { name: "to", in: "query", required: false, schema: { type: "string", format: "date" } },
+          {
+            name: "type",
+            in: "query",
+            required: false,
+            schema: { $ref: "#/components/schemas/EventType" },
+          },
+          { name: "page", in: "query", required: false, schema: { type: "integer", minimum: 1, default: 1 } },
+          { name: "pageSize", in: "query", required: false, schema: { type: "integer", minimum: 1, maximum: 100, default: 20 } },
+        ],
+        responses: {
+          "200": {
+            description: "События, сортировка по дате и времени начала",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/EventList" },
+              },
+            },
+          },
+          "400": {
+            description: "Город не выбран ни в профиле, ни в параметре",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
+          },
+          "401": { description: "Требуется авторизация" },
+        },
+      },
+    },
+    "/api/v1/events/{eventId}": {
+      parameters: [
+        {
+          name: "eventId",
+          in: "path",
+          required: true,
+          schema: { type: "integer" },
+        },
+      ],
+      get: {
+        tags: ["events"],
+        summary: "Карточка события",
+        operationId: "getEvent",
+        security: [{ sessionCookie: [] }],
+        responses: {
+          "200": {
+            description: "Событие",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Event" },
+              },
+            },
+          },
+          "401": { description: "Требуется авторизация" },
+          "404": { description: "Событие не найдено" },
+        },
+      },
+    },
+    "/api/v1/events/types": {
+      get: {
+        tags: ["events"],
+        summary: "Справочник типов событий",
+        operationId: "listEventTypes",
+        responses: {
+          "200": {
+            description: "Типы событий с русскими названиями",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      code: { $ref: "#/components/schemas/EventType" },
+                      name: { type: "string", example: "Выставка" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   components: {
     schemas: {
@@ -276,6 +379,39 @@ export const openApiDocument = {
           year: { type: "integer", minimum: 1900 },
           plateNumber: { type: "string", example: "А123БВ77" },
           description: { type: "string", maxLength: 5000, default: "" },
+        },
+      },
+      EventType: {
+        type: "string",
+        enum: ["MEETUP", "EXHIBITION", "RALLY", "FESTIVAL", "OTHER"],
+      },
+      Event: {
+        type: "object",
+        properties: {
+          id: { type: "integer", example: 1 },
+          externalId: { type: "string", example: "mock-moscow-0" },
+          title: { type: "string", example: "Встреча клуба ретро-автомобилей" },
+          eventDate: { type: "string", format: "date" },
+          startTime: { type: "string", nullable: true, example: "10:00" },
+          city: {
+            type: "string",
+            enum: ["MOSCOW", "SAINT_PETERSBURG", "KAZAN", "NIZHNY_NOVGOROD"],
+          },
+          type: { $ref: "#/components/schemas/EventType" },
+          location: { type: "string", nullable: true, example: "ВДНХ, павильон «Транспорт»" },
+          description: { type: "string", maxLength: 5000 },
+        },
+      },
+      EventList: {
+        type: "object",
+        properties: {
+          items: {
+            type: "array",
+            items: { $ref: "#/components/schemas/Event" },
+          },
+          total: { type: "integer", example: 7 },
+          page: { type: "integer", example: 1 },
+          pageSize: { type: "integer", example: 20 },
         },
       },
       Error: {
