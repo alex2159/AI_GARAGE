@@ -12,6 +12,7 @@ import { handleClientLog } from "./lib/clientlog";
 import { REQUEST_ID_HEADER, runWithRequestId } from "./lib/requestcontext";
 import { healthRoutes } from "./routes/health";
 import { docsRoutes } from "./routes/docs";
+import { seedEventsIfEmpty } from "./events/importer";
 
 const app = new Hono<{ Bindings: HttpBindings }>();
 
@@ -79,6 +80,14 @@ app.onError((err, c) => {
 });
 
 export default app;
+
+// Автонаполнение календаря при первом старте (идемпотентно, не блокирует boot).
+// Ошибка сида не должна ронять сервис — календарь наполнится при следующем старте.
+void seedEventsIfEmpty().catch((err) =>
+  log.error("events seed failed", {
+    error: err instanceof Error ? err.message : String(err),
+  }),
+);
 
 if (env.isProduction) {
   const { serve } = await import("@hono/node-server");

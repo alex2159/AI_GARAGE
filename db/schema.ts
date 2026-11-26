@@ -66,15 +66,41 @@ export const cars = mysqlTable(
 export type Car = typeof cars.$inferSelect;
 export type InsertCar = typeof cars.$inferInsert;
 
-// TODO: Add your tables here. See docs/Database.md for schema examples and patterns.
-//
-// Example:
-// export const posts = mysqlTable("posts", {
-//   id: serial("id").primaryKey(),
-//   title: varchar("title", { length: 255 }).notNull(),
-//   content: text("content"),
-//   createdAt: timestamp("created_at").notNull().defaultNow(),
-// });
-//
-// Note: FK columns referencing a serial() PK must use:
-//   bigint("columnName", { mode: "number", unsigned: true }).notNull()
+// Календарь событий. Наполняется из источника (MVP — mock, см. api/events/).
+// externalId — идемпотентный ключ записи во внешнем источнике.
+export const events = mysqlTable(
+  "events",
+  {
+    id: bigint("id", { mode: "number", unsigned: true })
+      .autoincrement()
+      .primaryKey(),
+    externalId: varchar("externalId", { length: 64 }).notNull().unique(),
+    title: varchar("title", { length: 255 }).notNull(),
+    // Дата строкой YYYY-MM-DD — без сюрпризов таймзон при сериализации.
+    eventDate: varchar("eventDate", { length: 10 }).notNull(),
+    startTime: varchar("startTime", { length: 5 }),
+    city: varchar("city", { length: 32 }).notNull(),
+    type: mysqlEnum("type", [
+      "MEETUP",
+      "EXHIBITION",
+      "RALLY",
+      "FESTIVAL",
+      "OTHER",
+    ]).notNull(),
+    location: varchar("location", { length: 255 }),
+    // NOT NULL без DEFAULT: TiDB не поддерживает дефолт для TEXT (как cars.description).
+    description: text("description").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt")
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    // Основной запрос календаря: события города за период.
+    index("events_city_date_idx").on(table.city, table.eventDate),
+  ],
+);
+
+export type Event = typeof events.$inferSelect;
+export type InsertEvent = typeof events.$inferInsert;
