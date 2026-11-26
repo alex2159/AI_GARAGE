@@ -92,6 +92,127 @@ export const openApiDocument = {
         },
       },
     },
+    "/api/v1/users/me/cars": {
+      get: {
+        tags: ["garage"],
+        summary: "Список автомобилей текущего пользователя",
+        operationId: "listCars",
+        security: [{ sessionCookie: [] }],
+        responses: {
+          "200": {
+            description: "Автомобили пользователя, сортировка по дате добавления",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/Car" },
+                },
+              },
+            },
+          },
+          "401": { description: "Требуется авторизация" },
+        },
+      },
+      post: {
+        tags: ["garage"],
+        summary: "Добавить автомобиль в гараж",
+        operationId: "createCar",
+        security: [{ sessionCookie: [] }],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/CarInput" },
+            },
+          },
+        },
+        responses: {
+          "201": {
+            description: "Автомобиль создан",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Car" },
+              },
+            },
+          },
+          "400": {
+            description: "Ошибка валидации (в т.ч. формат госномера)",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
+          },
+          "401": { description: "Требуется авторизация" },
+        },
+      },
+    },
+    "/api/v1/users/me/cars/{carId}": {
+      parameters: [
+        {
+          name: "carId",
+          in: "path",
+          required: true,
+          schema: { type: "integer" },
+        },
+      ],
+      get: {
+        tags: ["garage"],
+        summary: "Карточка автомобиля",
+        operationId: "getCar",
+        security: [{ sessionCookie: [] }],
+        responses: {
+          "200": {
+            description: "Автомобиль",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Car" },
+              },
+            },
+          },
+          "401": { description: "Требуется авторизация" },
+          "404": {
+            description: "Автомобиль не найден (чужая запись неотличима от несуществующей)",
+          },
+        },
+      },
+      patch: {
+        tags: ["garage"],
+        summary: "Обновить автомобиль",
+        operationId: "updateCar",
+        security: [{ sessionCookie: [] }],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/CarInput" },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Автомобиль обновлён" },
+          "400": {
+            description: "Ошибка валидации",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
+          },
+          "401": { description: "Требуется авторизация" },
+          "404": { description: "Автомобиль не найден" },
+        },
+      },
+      delete: {
+        tags: ["garage"],
+        summary: "Удалить автомобиль из гаража",
+        operationId: "deleteCar",
+        security: [{ sessionCookie: [] }],
+        responses: {
+          "204": { description: "Автомобиль удалён" },
+          "401": { description: "Требуется авторизация" },
+          "404": { description: "Автомобиль не найден" },
+        },
+      },
+    },
   },
   components: {
     schemas: {
@@ -127,6 +248,34 @@ export const openApiDocument = {
             nullable: true,
             enum: ["MOSCOW", "SAINT_PETERSBURG", "KAZAN", "NIZHNY_NOVGOROD", null],
           },
+        },
+      },
+      Car: {
+        type: "object",
+        properties: {
+          id: { type: "integer", example: 1 },
+          brand: { type: "string", example: "ВАЗ" },
+          model: { type: "string", example: "2101" },
+          year: { type: "integer", example: 1975 },
+          plateNumber: {
+            type: "string",
+            example: "А123БВ77",
+            description: "Госномер РФ: кириллица, регион 2–3 цифры",
+          },
+          description: { type: "string", maxLength: 5000 },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
+      },
+      CarInput: {
+        type: "object",
+        required: ["brand", "model", "year", "plateNumber"],
+        properties: {
+          brand: { type: "string", maxLength: 120 },
+          model: { type: "string", maxLength: 120 },
+          year: { type: "integer", minimum: 1900 },
+          plateNumber: { type: "string", example: "А123БВ77" },
+          description: { type: "string", maxLength: 5000, default: "" },
         },
       },
       Error: {
