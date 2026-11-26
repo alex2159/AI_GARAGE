@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* AI Garage — строгая монохромная система: только чёрный, белый и серые.
+   Без градиентов, без теней, без цветных акцентов. */
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -31,7 +34,18 @@
   * {
     @apply border-border;
   }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  ::selection {
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
+  }
+  :focus-visible {
+    outline: 2px solid hsl(var(--foreground));
+    outline-offset: 2px;
   }
 }

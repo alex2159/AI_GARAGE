@@ -1,9 +1,25 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          "Inter",
+          "-apple-system",
+          "PingFang SC",
+          "Microsoft YaHei",
+          "Segoe UI",
+          "sans-serif",
+        ],
+        mono: [
+          "JetBrains Mono",
+          "SFMono-Regular",
+          "Menlo",
+          "Consolas",
+          "monospace",
+        ],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -39,16 +55,15 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
       },
-      fontFamily: {
-        sans: ["Inter", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
-        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
-      },
       borderRadius: {
         xl: "calc(var(--radius) + 4px)",
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-        xs: "calc(var(--radius) - 6px)",
+        md: "calc(var(--radius) - 1px)",
+        sm: "var(--radius)",
+        xs: "var(--radius)",
+      },
+      transitionDuration: {
+        DEFAULT: "200ms",
       },
     },
   },
