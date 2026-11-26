@@ -34,3 +34,13 @@ export async function upsertUser(data: InsertUser) {
     .values(values)
     .onDuplicateKeyUpdate({ set: updateSet });
 }
+
+export async function updateUserProfile(
+  userId: number,
+  data: { name?: string; city?: string | null },
+) {
+  await getDb()
+    .update(schema.users)
+    .set(data)
+    .where(eq(schema.users.id, userId));
+}

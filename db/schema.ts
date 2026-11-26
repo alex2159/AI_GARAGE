@@ -1,19 +1,22 @@
 import {
   mysqlTable,
   mysqlEnum,
-  serial,
+  bigint,
   varchar,
   text,
   timestamp,
-  // bigint,
 } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
-  id: serial("id").primaryKey(),
+  id: bigint("id", { mode: "number", unsigned: true })
+    .autoincrement()
+    .primaryKey(),
   unionId: varchar("unionId", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 320 }),
   avatar: text("avatar"),
+  // Город проживания из фиксированного справочника (contracts/cities.ts).
+  city: varchar("city", { length: 32 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt")
