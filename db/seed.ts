@@ -1,10 +1,11 @@
-import { getDb } from "../api/queries/connection";
+import { importEvents } from "../api/events/importer";
 
+// npx tsx db/seed.ts — идемпотентное наполнение календаря событий.
 async function seed() {
-  const db = getDb();
   console.log("Seeding database...");
+  const { inserted, total } = await importEvents();
+  console.log(`Events: inserted ${inserted} of ${total} (idempotent by externalId).`);
   console.log("Done.");
-  void db;
   process.exit(0); // close MySQL connection pool
 }
 
